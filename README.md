@@ -116,6 +116,14 @@ For production deployments, consider adjusting memory settings based on your dat
 - **Medium datasets**: 2g heap, 8g page cache
 - **Large datasets**: 4g+ heap, 16g+ page cache
 
+### Memory Settings Reference
+
+For detailed information about Neo4j memory configuration, refer to the official documentation:
+
+- [Heap Initial Size](https://neo4j.com/docs/operations-manual/current/configuration/configuration-settings/#config_server.memory.heap.initial_size)
+- [Heap Max Size](https://neo4j.com/docs/operations-manual/current/configuration/configuration-settings/#config_server.memory.heap.max_size)
+- [Page Cache Size](https://neo4j.com/docs/operations-manual/current/configuration/configuration-settings/#config_server.memory.pagecache.size)
+
 ## License
 
 This template is open source and available under the MIT License.
