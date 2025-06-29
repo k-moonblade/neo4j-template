@@ -4,9 +4,12 @@ FROM neo4j:5.25.1 as neo4j-import
 # Set environment variables
 ARG NODE_CSV_URLS=""
 ARG RELATION_CSV_URLS=""
+ARG IS_HOBBY_PLATFORM=false
 
 ENV NODE_CSV_URLS=${NODE_CSV_URLS}
 ENV RELATION_CSV_URLS=${RELATION_CSV_URLS}
+
+ENV IS_HOBBY_PLATFORM=${IS_HOBBY_PLATFORM}
 
 
 # Create necessary directories for Neo4j
@@ -105,6 +108,7 @@ RUN files_exist=false && \
     fi
 
 # Second stage for running Neo4j with the preloaded data
+
 FROM neo4j:5.25.1
 
 ARG DB_PASSWORD=""
@@ -118,8 +122,20 @@ RUN echo "NEO4J_AUTH=${DB_PASSWORD}"
 # Use the preloaded database from the import stage
 COPY --from=neo4j-import /data /data
 
+RUN if [ "$IS_HOBBY_PLATFORM" = true ]; then \
+        echo "Detected Hobby Plan..."; \
+        echo "Setting server.memory.pagecache.size=4g"; \
+        cp /neo4j.conf /var/lib/neo4j/conf/neo4j.conf; \
+    else \
+        echo "Detected Pro Plan..."; \
+        echo "No changes to Neo4j configuration"; \
+    fi
+
+
+
 COPY server-logs.xml /var/lib/neo4j/conf/server-logs.xml
 COPY user-logs.xml /var/lib/neo4j/conf/server-logs.xml
+
 
 # Expose Neo4j ports
 EXPOSE 7474 7687
