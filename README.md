@@ -1,83 +1,121 @@
-# Railway Neo4j Template Overview
+# Neo4j GraphDB Docker Template
 
-This template allows you to easily deploy and manage a Neo4j instance on Railway.
+Neo4j GraphDB is a native graph database that stores data in nodes and relationships, making it perfect for complex queries and relationship-heavy data. It's widely used for social networks, recommendation systems, fraud detection, and knowledge graphs.
+
+## About This Template
+
+This Docker template provides a pre-configured Neo4j instance with bulk data import capabilities, configurable memory settings, and easy deployment. It includes automatic data import from CSV files and customizable memory allocation for optimal performance.
+
+## Common Use Cases
+
+- Social network analysis and friend recommendations
+- Fraud detection and pattern recognition
+- Knowledge graphs and semantic search
+- Supply chain optimization and logistics
+- Real-time recommendation engines
 
 ## Features
 
-- **Bulk Insert Support**  
-  You can bulk insert data using environment variables:  
-  - `RELATION_CSV_URLS` or `NODE_CSV_URLS`  
-  - Provide CSV file URLs separated by commas.
+- **Bulk Data Import**: Import nodes and relationships from CSV files via URLs
+- **Configurable Memory**: Customize heap and page cache memory settings
+- **Pre-configured Logging**: User and server logs enabled by default
+- **Docker Ready**: Easy deployment with Docker
 
-- **Automatic TCP Address**  
-  - A TCP address is automatically generated.  
-  - Use it in your driver as:  
-    ```
-    neo4j://your-tcp-address-from-railway
-    ```
-  - You can find this address in the **Service Settings** → **Networking** tab.  
-  - Click the **Copy** button to copy the value.
+## Dependencies
 
-- **Auto-Generated Password**  
-  - A password is automatically generated for your instance.  
-  - You can change it later (must be at least **8 characters long**).
+- Docker
+- Neo4j 5.25.1
+- Optional: CSV files for data import
 
-- **Logging Enabled by Default**  
-  - Both **user logs** and **server logs** are enabled out-of-the-box.
+## Quick Start
 
-## Example Code Snippets
+### Basic Deployment
+
+```bash
+docker build --build-arg DB_PASSWORD=your-password -t my-neo4j .
+docker run -p 7474:7474 -p 7687:7687 my-neo4j
+```
+
+### With Custom Memory Settings
+
+```bash
+docker build \
+  --build-arg HEAP_INITIAL_SIZE=2g \
+  --build-arg HEAP_MAX_SIZE=2g \
+  --build-arg PAGECACHE_SIZE=8g \
+  --build-arg DB_PASSWORD=your-password \
+  -t my-neo4j .
+```
+
+### With Data Import
+
+```bash
+docker build \
+  --build-arg NODE_CSV_URLS="https://example.com/nodes.csv" \
+  --build-arg RELATION_CSV_URLS="https://example.com/relationships.csv" \
+  --build-arg DB_PASSWORD=your-password \
+  -t my-neo4j .
+```
+
+## Configuration Options
+
+### Build Arguments
+
+| Argument            | Default | Required | Description                                     |
+| ------------------- | ------- | -------- | ----------------------------------------------- |
+| `DB_PASSWORD`       | `""`    | **Yes**  | Neo4j database password                         |
+| `HEAP_INITIAL_SIZE` | `"1g"`  | No       | Initial heap memory size                        |
+| `HEAP_MAX_SIZE`     | `"1g"`  | No       | Maximum heap memory size                        |
+| `PAGECACHE_SIZE`    | `"4g"`  | No       | Page cache memory size                          |
+| `NODE_CSV_URLS`     | `""`    | No       | Comma-separated URLs for node CSV files         |
+| `RELATION_CSV_URLS` | `""`    | No       | Comma-separated URLs for relationship CSV files |
+
+### Environment Variables
+
+The same build arguments can also be passed as environment variables when running the container.
+
+## Connection Examples
 
 ### JavaScript (Node.js)
-```javascript
-import neo4j from 'neo4j-driver';
 
-const host = configService.get<string>('NEO4J_HOST'); // neo4j://your-tcp-address-from-railway
-const username = configService.get<string>('NEO4J_USERNAME'); // This must be neo4j
-const password = configService.get<string>('NEO4J_PASSWORD');
+```javascript
+import neo4j from "neo4j-driver";
+
+const host = "neo4j://localhost:7687";
+const username = "neo4j";
+const password = "your-password";
 
 const driver = neo4j.driver(host, neo4j.auth.basic(username, password));
-const result = await driver.executeQuery('MATCH (n) RETURN n');
-console.log(result);
+const result = await driver.executeQuery("MATCH (n) RETURN n");
 ```
 
 ### Python
+
 ```python
 from neo4j import GraphDatabase
 
-uri = "neo4j://your-tcp-address-from-railway"
+uri = "neo4j://localhost:7687"
 username = "neo4j"
 password = "your-password"
 
 driver = GraphDatabase.driver(uri, auth=(username, password))
-
 with driver.session() as session:
     result = session.run("MATCH (n) RETURN n")
-    for record in result:
-        print(record)
 ```
 
-### Java
-```java
-import org.neo4j.driver.*;
+## Ports
 
-public class Neo4jExample {
-    public static void main(String[] args) {
-        String uri = "neo4j://your-tcp-address-from-railway";
-        String user = "neo4j";
-        String password = "your-password";
+- `7474`: HTTP port (Neo4j Browser)
+- `7687`: Bolt port (Database connections)
 
-        try (Driver driver = GraphDatabase.driver(uri, AuthTokens.basic(user, password));
-             Session session = driver.session()) {
-            Result result = session.run("MATCH (n) RETURN n");
-            while (result.hasNext()) {
-                System.out.println(result.next().asMap());
-            }
-        }
-    }
-}
-```
+## Memory Configuration
 
-## Future Improvements
+For production deployments, consider adjusting memory settings based on your data size and available resources:
 
-- Expanding bulk insert support beyond CSV files.  
-- Providing access to the Neo4j Web UI.  
+- **Small datasets**: Use default settings (1g heap, 4g page cache)
+- **Medium datasets**: 2g heap, 8g page cache
+- **Large datasets**: 4g+ heap, 16g+ page cache
+
+## License
+
+This template is open source and available under the MIT License.
