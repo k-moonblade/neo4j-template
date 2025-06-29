@@ -110,12 +110,20 @@ RUN files_exist=false && \
 FROM neo4j:5.25.1
 
 ARG DB_PASSWORD=""
-
+ARG HEAP_INITIAL_SIZE="1g"
+ARG HEAP_MAX_SIZE="1g"
+ARG PAGECACHE_SIZE="4g"
 
 # Set environment variables
 ENV NEO4J_AUTH=neo4j/${DB_PASSWORD}
+ENV HEAP_INITIAL_SIZE=${HEAP_INITIAL_SIZE}
+ENV HEAP_MAX_SIZE=${HEAP_MAX_SIZE}
+ENV PAGECACHE_SIZE=${PAGECACHE_SIZE}
 
 RUN echo "NEO4J_AUTH=${DB_PASSWORD}"
+RUN echo "HEAP_INITIAL_SIZE=${HEAP_INITIAL_SIZE}"
+RUN echo "HEAP_MAX_SIZE=${HEAP_MAX_SIZE}"
+RUN echo "PAGECACHE_SIZE=${PAGECACHE_SIZE}"
 
 # Use the preloaded database from the import stage
 COPY --from=neo4j-import /data /data
@@ -126,9 +134,17 @@ COPY neo4j.conf /var/lib/neo4j/conf/neo4j.conf
 COPY server-logs.xml /var/lib/neo4j/conf/server-logs.xml
 COPY user-logs.xml /var/lib/neo4j/conf/server-logs.xml
 
+# Create a script to update Neo4j configuration with environment variables
+RUN echo '#!/bin/bash\n\
+# Update Neo4j configuration with environment variables\n\
+sed -i "s/server.memory.heap.initial_size=.*/server.memory.heap.initial_size=${HEAP_INITIAL_SIZE}/" /var/lib/neo4j/conf/neo4j.conf\n\
+sed -i "s/server.memory.heap.max_size=.*/server.memory.heap.max_size=${HEAP_MAX_SIZE}/" /var/lib/neo4j/conf/neo4j.conf\n\
+sed -i "s/server.memory.pagecache.size=.*/server.memory.pagecache.size=${PAGECACHE_SIZE}/" /var/lib/neo4j/conf/neo4j.conf\n\
+echo "Neo4j configuration updated with environment variables"\n\
+exec neo4j' > /entrypoint.sh && chmod +x /entrypoint.sh
 
 # Expose Neo4j ports
 EXPOSE 7474 7687
 
-# Run Neo4j
-CMD ["neo4j"]
+# Run the entrypoint script
+CMD ["/entrypoint.sh"]
