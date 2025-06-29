@@ -122,7 +122,7 @@ RUN echo "NEO4J_AUTH=${DB_PASSWORD}"
 # Use the preloaded database from the import stage
 COPY --from=neo4j-import /data /data
 
-RUN if [ "$IS_HOBBY_PLATFORM" = true ]; then \
+RUN if [ "$IS_HOBBY_PLATFORM" = "true" ]; then \
         echo "Detected Hobby Plan..."; \
         echo "Setting server.memory.pagecache.size=4g"; \
         cp /neo4j.conf /var/lib/neo4j/conf/neo4j.conf; \
