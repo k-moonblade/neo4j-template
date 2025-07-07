@@ -129,8 +129,6 @@ RUN echo "PAGECACHE_SIZE=${PAGECACHE_SIZE}"
 # Use the preloaded database from the import stage
 COPY --from=neo4j-import /data /data
 
-
-
 COPY neo4j.conf /var/lib/neo4j/conf/neo4j.conf
 COPY server-logs.xml /var/lib/neo4j/conf/server-logs.xml
 COPY user-logs.xml /var/lib/neo4j/conf/user-logs.xml
@@ -147,8 +145,8 @@ echo "# Memory configuration from environment variables" >> /var/lib/neo4j/conf/
 echo "server.memory.heap.initial_size=${HEAP_INITIAL_SIZE}" >> /var/lib/neo4j/conf/neo4j.conf\n\
 echo "server.memory.heap.max_size=${HEAP_MAX_SIZE}" >> /var/lib/neo4j/conf/neo4j.conf\n\
 echo "server.memory.pagecache.size=${PAGECACHE_SIZE}" >> /var/lib/neo4j/conf/neo4j.conf\n\
+# APOC plugin configuration\n\
 echo "" >> /var/lib/neo4j/conf/neo4j.conf\n\
-echo "# APOC plugin configuration" >> /var/lib/neo4j/conf/neo4j.conf\n\
 echo "dbms.security.procedures.unrestricted=apoc.*" >> /var/lib/neo4j/conf/neo4j.conf\n\
 echo "Neo4j configuration updated with environment variables"' > /update-config.sh && chmod +x /update-config.sh
 
